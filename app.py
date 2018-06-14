@@ -66,22 +66,18 @@ def merge_bb_data(params, result):
             if repo_data.get('has_issues'):
                 issues_data = get_json(repo_url + '/issues?status=open')
                 result['open_issues'] += issues_data.get('count', 0)
-              
+
             follower_url = 'https://api.bitbucket.org/1.0/users/{}/followers'.format(
                 params['bitbucket']
             )
-            follower_req = requests.get(follower_url)
-            if follower_req.status_code == 200:
-                follower_data = follower_req.json()
-                result['user_watchers'] += follower_data['count']
+            follower_data = get_json(follower_url)
+            result['user_watchers'] += follower_data.get('count', 0)
             
             commits_url = 'https://api.bitbucket.org/1.0/repositories/{}/{}/changesets/'.format(
                 params['bitbucket'], slug
             )
-            commits_req = requests.get(commits_url)
-            if commits_req.status_code == 200:
-                commits_data = commits_req.json()
-                result['commits'] += commits_data.get('count')
+            commits_data = get_json(commits_url)
+            result['commits'] += commits_data.get('count', 0)
     return result
 
 
