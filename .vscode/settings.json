@@ -1,5 +1,5 @@
 {
-  "python.pythonPath": "/Users/jtham/.pyenv/versions/3.6.4/bin/python",
+  "python.pythonPath": "/Users/jt/.virtualenvs/test/bin/python",
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true
