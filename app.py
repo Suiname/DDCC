@@ -97,11 +97,20 @@ def merge_gh_data(params, result):
         stars_last_url = stars_req.headers['Link'].split(',')[1]
         num_stars = re.search(r".*&page=([0-9]*)>;", stars_last_url)
         result['stars']['given'] += int(num_stars.group(1))
-
-    repo_url = 'https://api.github.com/users/{}/repos?per_page=100'.format(
-        params.get('github')
-    )
-    gh_repos = get_json(repo_url, auth=(username, password))
+    more = True
+    page = 0
+    gh_repos = []
+    while more:
+        page += 1
+        repo_url = 'https://api.github.com/users/{}/repos?per_page=100&page={}'.format(
+            params.get('github'), page
+        )
+        repo_json = get_json(repo_url, auth=(username, password))
+        if len(repo_json):  # result is an array
+            gh_repos += repo_json
+        else:  # no results
+            more = False
+    print(len(gh_repos))
     for repo in gh_repos:
         if repo:
             if repo['fork']:
