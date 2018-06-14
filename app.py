@@ -35,8 +35,8 @@ def create_response():
     return result
 
 
-def get_json(url, auth=None):
-    req = requests.get(url, auth=auth)
+def get_json(url, auth=None, headers=None):
+    req = requests.get(url, auth=auth, headers=headers)
     if req.status_code == 200:
         return req.json()
     else:
@@ -129,13 +129,14 @@ def merge_gh_data(params, result):
                 params.get('github'), repo['name']
             )
             headers = {'Accept': "application/vnd.github.mercy-preview+json"}
-            topics_response = requests.get(topics_url, headers=headers, auth=(username, password))
-            if(len(topics_response.json())):
-                result['repo_topics']['list'] += topics_response.json()['names']
+            topics = get_json(topics_url, headers=headers, auth=(username, password))
+            if(topics.get('names')):
+                # concatenate array of topics
+                result['repo_topics']['list'] += topics['names']
+                # dedupe the list
                 result['repo_topics']['list'] = list(set(result['repo_topics']['list']))
+                # set the count
                 result['repo_topics']['count'] = len(result['repo_topics']['list'])
-        else:  # malformed repo data
-            raise 'Malformed Repository Data returned from Github'
     return result
 
 
