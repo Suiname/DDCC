@@ -61,14 +61,11 @@ def merge_bb_data(params, result):
                 result['languages']['count'] += 1
             repo_url = 'https://api.bitbucket.org/{}'.format(
                 repo['resource_uri'])
-            repo_req = requests.get(repo_url)
-            if repo_req.status_code == 200:
-                repo_data = repo_req.json()
-                result['repo_watchers'] += repo_data['followers_count']
-                if repo_data['has_issues']:
-                    issues_req = requests.get(repo_url + '/issues?status=open')
-                    issues_data = issues_req.json()
-                    result['open_issues'] += issues_data.get('count')
+            repo_data = get_json(repo_url)
+            result['repo_watchers'] += repo_data.get('followers_count', 0)
+            if repo_data.get('has_issues'):
+                issues_data = get_json(repo_url + '/issues?status=open')
+                result['open_issues'] += issues_data.get('count', 0)
               
             follower_url = 'https://api.bitbucket.org/1.0/users/{}/followers'.format(
                 params['bitbucket']
