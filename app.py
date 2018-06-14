@@ -40,14 +40,13 @@ def get_json(url, auth=None):
     if req.status_code == 200:
         return req.json()
     else:
-        raise 'Error retrieving data from {}'.url
+        return {}
 
 
 def merge_bb_data(params, result):
     bb_url = 'https://api.bitbucket.org/1.0/users/{}'.format(params['bitbucket'])
-    bb_req = requests.get(bb_url)
-    bb_repos = bb_req.json()
-    if bb_repos['repositories'] and len(bb_repos['repositories']):
+    bb_repos = get_json(bb_url)
+    if bb_repos.get('repositories') and len(bb_repos['repositories']):
         for repo in bb_repos['repositories']:
             slug = repo['slug']
             if repo['is_fork']:
@@ -127,7 +126,7 @@ def merge_gh_data(params, result):
                 )
             commit_request = requests.get(commit_url, auth=(username, password))
             if commit_request.status_code == 200:
-                commits = commit_request.json()
+                commits = get_json(commit_url, auth=(username, password))
                 user_commits = [x for x in commits if x['login'].lower() == params.get('github').lower()]
                 if user_commits and user_commits[0]:
                     result['commits'] += user_commits[0].get('contributions', 0)
