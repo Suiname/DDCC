@@ -80,18 +80,7 @@ def merge_bb_data(params, result):
     return result
 
 
-@app.route('/test', methods=['GET'])
-def test():
-    return jsonify({'test': True})
-
-
-@app.route('/mash')
-def mash():
-    params = {
-        'bitbucket': request.args.get('bb_name'),
-        'github': request.args.get('gh_name'),
-    }
-    result = create_response()
+def merge_gh_data(params, result):
     url = 'https://api.github.com/users/{}/repos?per_page=3'.format(
         params.get('github')
         )
@@ -133,7 +122,22 @@ def mash():
                 result['repo_topics']['count'] = len(result['repo_topics']['list'])
         else:  # malformed repo data
             raise 'Malformed Repository Data returned from Github'
-    bb_url = 'https://api.bitbucket.org/1.0/users/{}'.format(params['bitbucket'])
+    return result
+
+
+@app.route('/test', methods=['GET'])
+def test():
+    return jsonify({'test': True})
+
+
+@app.route('/mash')
+def mash():
+    params = {
+        'bitbucket': request.args.get('bb_name'),
+        'github': request.args.get('gh_name'),
+    }
+    result = create_response()
+    result = merge_gh_data(params, result)
     result = merge_bb_data(params, result)
 
     return jsonify(result)
