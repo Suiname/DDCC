@@ -23,6 +23,51 @@ Follow the link in console to your running app, usually http://127.0.0.1:5000
 ## Usage
 The route to merge the profiles is exposed at `/merge`.  This route takes two query parameters, `bb_name` for the bitbucket user and `gh_name` for the github user.  Here's an example url: `http://127.0.0.1:5000/merge?bb_name=pygame&gh_name=miguelgrinberg`
 
+## Data Format
+Here's an annotated sample JSON output
+```
+{
+	account_size: 40307881, # size of the merged accounts
+	commits: 8875, # total commits of the merged accounts across all branches
+	languages: { 
+		count: 11, # total number of unique languages use
+		list: [ # a deduped list of languages used
+			"python",
+			"shell",
+			"batchfile",
+			"html",
+			"javascript",
+			"css",
+			"coffeescript",
+			"ruby",
+			"c",
+			"c++",
+			"hcl"
+		]
+	},
+	open_issues: 355, # total open issues
+	repo_count: {
+		forked: 57, # number of forked repositories
+		original: 72 # number of non-forked repositories
+	},
+	repo_topics: {
+		count: 48, # count of all topics across all github repos
+		list: [
+			"webapp",
+			"unittest",
+			"serverless-deployments",
+			...etc
+		]
+	},
+	repo_watchers: 15430, # total number of watchers/followers across repos
+	stars: {
+		given: 218, # total github repos users have starred
+		received: 15165 # total numbers of stars on users own github repos
+	},
+	user_watchers: 5866 # total number of users following both merged accounts
+}
+```
+
 ## Notes and Considerations
 - Chose GET as the REST verb, since you are retrieving read-only data and nothing is being altered
 - Since using GET, chose to expose query params to set the user accounts to merge
@@ -31,3 +76,4 @@ The route to merge the profiles is exposed at `/merge`.  This route takes two qu
 - Used Flake8 standard for linting
 - Did not have enough time to write unit tests.  As is, I would try to unit test by mocking the requests library response with truncated real JSON responses from the github and bitbucket API.  
 - I tried to make my code run as a series of function calls so I could test each logical segment individually, however even the three functions I made to create the data object, merge in the github data, and merge in the bitbucket data could be further broken down (function for getting follwer data, commit data, etc).  This would help the readability, maintainability, and testability of the code.
+- Bitbucket doesn't have topics or stars, so the data for those is from github only
