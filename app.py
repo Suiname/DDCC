@@ -35,6 +35,14 @@ def create_response():
     return result
 
 
+def get_json(url, auth=None):
+    req = requests.get(url, auth=auth)
+    if req.status_code == 200:
+        return req.json()
+    else:
+        raise 'Error retrieving data from {}'.url
+
+
 def merge_bb_data(params, result):
     bb_url = 'https://api.bitbucket.org/1.0/users/{}'.format(params['bitbucket'])
     bb_req = requests.get(bb_url)
@@ -103,8 +111,7 @@ def merge_gh_data(params, result):
     repo_url = 'https://api.github.com/users/{}/repos?per_page=100'.format(
         params.get('github')
     )
-    gh_req = requests.get(repo_url, auth=(username, password))
-    gh_repos = gh_req.json()
+    gh_repos = get_json(repo_url, auth=(username, password))
     for repo in gh_repos:
         if repo:
             if repo['fork']:
@@ -146,7 +153,8 @@ def merge_gh_data(params, result):
 
 @app.route('/test', methods=['GET'])
 def test():
-    return jsonify({'test': True})
+    result = get_json('https://api.bitbucket.org/2.0/repositories/Suiname/expedia/commits')
+    return jsonify(result)
 
 
 @app.route('/mash')
