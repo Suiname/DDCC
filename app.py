@@ -8,21 +8,7 @@ password = os.environ.get('GITHUB_PASS')
 app = Flask(__name__)
 
 
-@app.route('/test', methods=['GET'])
-def test():
-    return jsonify({'test': True})
-
-
-@app.route('/mash')
-def mash():
-    params = {
-        'bitbucket': request.args.get('bb_name'),
-        'github': request.args.get('gh_name'),
-    }
-    url = 'https://api.github.com/users/{}/repos?per_page=3'.format(
-        params['github']
-        )
-    # print(url)
+def create_response():
     result = {}
     result['repo_count'] = {
         'original': 0,
@@ -45,6 +31,25 @@ def mash():
         'list': [],
         'count': 0,
     }
+    return result
+
+
+@app.route('/test', methods=['GET'])
+def test():
+    return jsonify({'test': True})
+
+
+@app.route('/mash')
+def mash():
+    params = {
+        'bitbucket': request.args.get('bb_name'),
+        'github': request.args.get('gh_name'),
+    }
+    url = 'https://api.github.com/users/{}/repos?per_page=3'.format(
+        params['github']
+        )
+    # print(url)
+    result = create_response()
     gh_req = requests.get(url, auth=(username, password))
     gh_repos = gh_req.json()
     for repo in gh_repos:
