@@ -85,17 +85,15 @@ def merge_gh_data(params, result):
     follower_url = 'https://api.github.com/users/{}'.format(
         params.get('github')
     )
-    followers_req = requests.get(follower_url, auth=(username, password))
-    if followers_req.status_code == 200:
-        followers_data = followers_req.json()
-        result['user_watchers'] += followers_data['followers'] 
+    followers_data = get_json(follower_url, auth=(username, password))
+    result['user_watchers'] += followers_data.get('followers', 0)
 
     star_url = 'https://api.github.com/users/{}/starred?per_page=1'.format(
         params.get('github')
     )
     stars_req = requests.get(star_url, auth=(username, password))
     if stars_req.status_code == 200:
-        # get the last page of the stars url to find the number of stars
+        # get the last page from the header to find the number of stars
         stars_last_url = stars_req.headers['Link'].split(',')[1]
         num_stars = re.search(r".*&page=([0-9]*)>;", stars_last_url)
         result['stars']['given'] += int(num_stars.group(1))
@@ -117,12 +115,10 @@ def merge_gh_data(params, result):
                 'https://api.github.com/repos/{}/{}/contributors'
                 .format(params.get('github'), repo['name'])
                 )
-            commit_request = requests.get(commit_url, auth=(username, password))
-            if commit_request.status_code == 200:
-                commits = get_json(commit_url, auth=(username, password))
-                user_commits = [x for x in commits if x['login'].lower() == params.get('github').lower()]
-                if user_commits and user_commits[0]:
-                    result['commits'] += user_commits[0].get('contributions', 0)
+            commits = get_json(commit_url, auth=(username, password))
+            user_commits = [x for x in commits if x['login'].lower() == params.get('github').lower()]
+            if user_commits and user_commits[0]:
+                result['commits'] += user_commits[0].get('contributions', 0)
             result['account_size'] += repo['size']
             if(repo['language'] and
                repo['language'].lower() not in result['languages']['list']
