@@ -1,5 +1,9 @@
 from flask import Flask, jsonify, request
 import requests
+import os
+
+username = os.environ.get('GITHUB_USER')
+password = os.environ.get('GITHUB_PASS')
 
 app = Flask(__name__)
 
@@ -15,7 +19,7 @@ def mash():
         'bitbucket': request.args.get('bb_name'),
         'github': request.args.get('gh_name'),
     }
-    url = 'https://api.github.com/users/{}/repos?per_page=1'.format(
+    url = 'https://api.github.com/users/{}/repos?per_page=3'.format(
         params['github']
         )
     # print(url)
@@ -41,8 +45,7 @@ def mash():
         'list': [],
         'count': 0,
     }
-
-    gh_req = requests.get(url)
+    gh_req = requests.get(url, auth=(username, password))
     gh_repos = gh_req.json()
     for repo in gh_repos:
         if repo:
@@ -57,11 +60,10 @@ def mash():
                 'https://api.github.com/repos/{}/{}/contributors'
                 .format(params['github'], repo['name'])
                 )
-            commit_request = requests.get(commit_url)
+            commit_request = requests.get(commit_url, auth=(username, password))
             if commit_request.status_code == 200:
                 commits = commit_request.json()
                 user_commits = [x for x in commits if x['login'].lower() == params['github'].lower()]
-                print(user_commits)
                 result['commits'] += user_commits[0]['contributions']
             result['account_size'] += repo['size']
             if repo['language'] not in result['languages']['list']:
@@ -70,11 +72,13 @@ def mash():
             topics_url = 'https://api.github.com/repos/{}/{}/topics'.format(
                 params['github'], repo['name']
             )
+            print(topics_url)
             headers = {'Accept': "application/vnd.github.mercy-preview+json"}
-            topics_response = requests.get(topics_url, headers=headers)
-            result['repo_topics']['list'].append(topics_response.json()['names'])
-            result['repo_topics']['list'] = list(set(result['repo_topics']))
-            result['repo_topics']['count'] = len(result['repo_topics']['list'])
+            topics_response = requests.get(topics_url, headers=headers, auth=(username, password))
+            if(len(topics_response.json())):
+                result['repo_topics']['list'] += topics_response.json()['names']
+                result['repo_topics']['list'] = list(set(result['repo_topics']['list']))
+                result['repo_topics']['count'] = len(result['repo_topics']['list'])
         else:  # malformed repo data
             raise 'Malformed Repository Data returned from Github'
     return jsonify(result)
